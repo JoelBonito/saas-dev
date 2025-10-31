@@ -1,13 +1,23 @@
-/* Layout Component - A component that wraps the main content of the app
-   - Use this file to add a header, footer, or other elements that should be present on every page
-   - This component is used in the App.tsx file to wrap the main content of the app */
-
 import { Outlet } from 'react-router-dom'
+import { FloatingElements } from '@/components/common/FloatingElements'
+import { Toaster as Sonner } from '@/components/ui/sonner'
+import { useAuth } from './auth/AuthContext'
+import { DashboardLayout } from './layout/DashboardLayout'
 
 export default function Layout() {
+  const { isAuthenticated } = useAuth()
+
   return (
-    <main className="flex flex-col min-h-screen">
-      <Outlet />
-    </main>
+    <>
+      <FloatingElements />
+      <Sonner
+        toastOptions={{
+          classNames: {
+            toast: 'bg-glass border-glass text-foreground',
+          },
+        }}
+      />
+      {isAuthenticated ? <DashboardLayout /> : <Outlet />}
+    </>
   )
 }
