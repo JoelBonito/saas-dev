@@ -68,6 +68,8 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
           {
             messages: apiMessages,
             system: systemPrompt,
+            projectId,
+            conversationId,
           },
           {
             onStart: () => {

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useChat } from '@/hooks/use-chat'
+import { usePersistedChat } from '@/hooks/use-persisted-chat'
 import { ChatMessage } from './ChatMessage'
 import { ChatInput } from './ChatInput'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -8,23 +8,21 @@ import { AlertCircle, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ChatContainerProps {
-  projectId?: string
-  conversationId?: string
+  projectId: string
   systemPrompt?: string
   className?: string
 }
 
 export function ChatContainer({
   projectId,
-  conversationId,
   systemPrompt = 'Você é um assistente especializado em desenvolvimento de software. Ajude o usuário a criar e modificar código, sempre explicando suas decisões de forma clara e concisa.',
   className,
 }: ChatContainerProps) {
   const { messages, isLoading, streamingContent, error, sendMessage, resetError } =
-    useChat({
+    usePersistedChat({
       projectId,
-      conversationId,
       systemPrompt,
+      autoLoad: true,
     })
 
   const scrollAreaRef = useRef<HTMLDivElement>(null)

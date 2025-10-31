@@ -31,6 +31,8 @@ export interface ChatCompletionRequest {
   max_tokens?: number
   temperature?: number
   system?: string
+  projectId?: string
+  conversationId?: string
 }
 
 export interface GeneratedFile {

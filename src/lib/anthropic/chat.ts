@@ -1,4 +1,4 @@
-import { anthropic, DEFAULT_MODEL, MAX_TOKENS } from './client'
+import { supabase } from '@/lib/supabase/client'
 import type {
   ChatCompletionRequest,
   StreamingOptions,
@@ -18,55 +18,104 @@ export function calculateCost(usage: TokenUsage): number {
 }
 
 /**
- * Send a chat completion request with streaming support
+ * Get the Supabase Functions URL
+ */
+function getFunctionsUrl(): string {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
+  return `${supabaseUrl}/functions/v1`
+}
+
+/**
+ * Send a chat completion request with streaming support via Supabase Edge Function
  */
 export async function sendChatMessage(
   request: ChatCompletionRequest,
   options?: StreamingOptions,
 ): Promise<{ text: string; usage: TokenUsage }> {
-  const { messages, model = DEFAULT_MODEL, max_tokens = MAX_TOKENS, system } = request
+  const { messages, system, projectId, conversationId } = request
 
   try {
     options?.onStart?.()
 
-    const stream = await anthropic.messages.stream({
-      model,
-      max_tokens,
-      messages: messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      ...(system && { system }),
-    })
+    // Get the current session for auth
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
-    let fullText = ''
-
-    // Handle streaming tokens
-    for await (const chunk of stream) {
-      if (
-        chunk.type === 'content_block_delta' &&
-        chunk.delta.type === 'text_delta'
-      ) {
-        const token = chunk.delta.text
-        fullText += token
-        options?.onToken?.(token)
-      }
+    if (!session) {
+      throw new Error('No active session. Please log in.')
     }
 
-    // Get the final message with usage stats
-    const finalMessage = await stream.finalMessage()
-
-    const usage: TokenUsage = {
-      input_tokens: finalMessage.usage.input_tokens,
-      output_tokens: finalMessage.usage.output_tokens,
-      total_tokens:
-        finalMessage.usage.input_tokens + finalMessage.usage.output_tokens,
-      cost_usd: calculateCost({
-        input_tokens: finalMessage.usage.input_tokens,
-        output_tokens: finalMessage.usage.output_tokens,
-        total_tokens:
-          finalMessage.usage.input_tokens + finalMessage.usage.output_tokens,
+    // Call the Edge Function with streaming
+    const response = await fetch(`${getFunctionsUrl()}/chat-stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        messages,
+        systemPrompt: system,
+        projectId,
+        conversationId,
       }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(
+        errorData.error || `HTTP error! status: ${response.status}`,
+      )
+    }
+
+    if (!response.body) {
+      throw new Error('No response body')
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let fullText = ''
+    let usage: TokenUsage = {
+      input_tokens: 0,
+      output_tokens: 0,
+      total_tokens: 0,
+      cost_usd: 0,
+    }
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        const lines = chunk.split('\n')
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6)
+
+            if (data === '[DONE]') {
+              continue
+            }
+
+            try {
+              const parsed = JSON.parse(data)
+
+              if (parsed.type === 'token') {
+                const token = parsed.content
+                fullText += token
+                options?.onToken?.(token)
+              } else if (parsed.type === 'usage') {
+                usage = parsed.usage
+              }
+            } catch (e) {
+              // Ignore JSON parse errors for incomplete chunks
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock()
     }
 
     options?.onComplete?.(fullText, usage)
@@ -81,40 +130,44 @@ export async function sendChatMessage(
 }
 
 /**
- * Send a non-streaming chat completion request
+ * Analyze a task and get recommendations
  */
-export async function sendChatMessageSync(
-  request: ChatCompletionRequest,
-): Promise<{ text: string; usage: TokenUsage }> {
-  const { messages, model = DEFAULT_MODEL, max_tokens = MAX_TOKENS, system } = request
+export async function analyzeTask(
+  prompt: string,
+  projectId: string,
+): Promise<{
+  task_type: string
+  optimal_tool: string
+  recommendation: string
+  reasoning: string
+  estimated_tokens: number
+}> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
-  try {
-    const response = await anthropic.messages.create({
-      model,
-      max_tokens,
-      messages: messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      ...(system && { system }),
-    })
-
-    const text =
-      response.content[0].type === 'text' ? response.content[0].text : ''
-
-    const usage: TokenUsage = {
-      input_tokens: response.usage.input_tokens,
-      output_tokens: response.usage.output_tokens,
-      total_tokens: response.usage.input_tokens + response.usage.output_tokens,
-      cost_usd: calculateCost({
-        input_tokens: response.usage.input_tokens,
-        output_tokens: response.usage.output_tokens,
-        total_tokens: response.usage.input_tokens + response.usage.output_tokens,
-      }),
-    }
-
-    return { text, usage }
-  } catch (error) {
-    throw error instanceof Error ? error : new Error('Unknown error occurred')
+  if (!session) {
+    throw new Error('No active session. Please log in.')
   }
+
+  const response = await fetch(`${getFunctionsUrl()}/analyze-task`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({
+      prompt,
+      projectId,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(
+      errorData.error || `HTTP error! status: ${response.status}`,
+    )
+  }
+
+  return response.json()
 }
