@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   ResizableHandle,
   ResizablePanel,
@@ -7,10 +8,17 @@ import { GlassCard } from '@/components/common/GlassCard'
 import { ArrowLeft, Github, Database, Zap } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
-import { TaskRecommendationBanner } from '@/components/recommendations/TaskRecommendationBanner'
+import { TaskRecommendationBannerStatic } from '@/components/recommendations/TaskRecommendationBanner'
+import { ChatContainer } from '@/components/chat'
+import { CodePreview, FileNode } from '@/components/code'
 
 const ProjectEditorPage = () => {
   const { id } = useParams()
+  const [generatedFiles, setGeneratedFiles] = useState<FileNode[]>([])
+
+  if (!id) {
+    return <div>Project ID not found</div>
+  }
 
   return (
     <div className="animate-fade-in-up flex h-[calc(100vh-10rem)] flex-col gap-4">
@@ -36,18 +44,18 @@ const ProjectEditorPage = () => {
         </div>
       </header>
 
-      <TaskRecommendationBanner />
+      <TaskRecommendationBannerStatic />
 
       <ResizablePanelGroup direction="horizontal" className="flex-1">
-        <ResizablePanel defaultSize={50}>
-          <GlassCard className="h-full">
-            <p>Área do Chat</p>
+        <ResizablePanel defaultSize={50} minSize={30}>
+          <GlassCard className="h-full overflow-hidden">
+            <ChatContainer projectId={id} />
           </GlassCard>
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={50}>
-          <GlassCard className="h-full">
-            <p>Preview do Código</p>
+        <ResizablePanel defaultSize={50} minSize={30}>
+          <GlassCard className="h-full overflow-hidden">
+            <CodePreview files={generatedFiles} />
           </GlassCard>
         </ResizablePanel>
       </ResizablePanelGroup>
