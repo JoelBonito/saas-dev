@@ -1,6 +1,6 @@
 import { Editor, OnMount } from '@monaco-editor/react'
-import { useTheme } from 'next-themes'
 import { Loader2 } from 'lucide-react'
+import { useThemeDetector } from '@/hooks/use-theme-detector'
 
 interface CodeEditorProps {
   value: string
@@ -19,7 +19,7 @@ export function CodeEditor({
   height = '100%',
   className,
 }: CodeEditorProps) {
-  const { theme } = useTheme()
+  const theme = useThemeDetector()
 
   const handleEditorMount: OnMount = (editor, monaco) => {
     // Configure editor options
