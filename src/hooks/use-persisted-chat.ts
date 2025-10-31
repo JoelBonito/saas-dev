@@ -72,8 +72,7 @@ export function usePersistedChat(
       console.error('Error loading messages:', err)
       toast({
         title: 'Erro ao carregar mensagens',
-        description:
-          err instanceof Error ? err.message : 'Erro desconhecido',
+        description: err instanceof Error ? err.message : 'Erro desconhecido',
         variant: 'destructive',
       })
     }

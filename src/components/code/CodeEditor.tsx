@@ -36,13 +36,10 @@ export function CodeEditor({
     })
 
     // Add custom keybindings
-    editor.addCommand(
-      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
-      () => {
-        // Save file action - can be customized
-        console.log('Save triggered')
-      },
-    )
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+      // Save file action - can be customized
+      console.log('Save triggered')
+    })
   }
 
   return (

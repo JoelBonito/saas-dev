@@ -8,7 +8,10 @@ interface ChatMessageProps {
   isStreaming?: boolean
 }
 
-export function ChatMessage({ message, isStreaming = false }: ChatMessageProps) {
+export function ChatMessage({
+  message,
+  isStreaming = false,
+}: ChatMessageProps) {
   const isUser = message.role === 'user'
 
   return (

@@ -117,7 +117,12 @@ export function CodePreview({ files, className }: CodePreviewProps) {
 
   if (files.length === 0) {
     return (
-      <div className={cn('flex h-full flex-col items-center justify-center p-8 text-center', className)}>
+      <div
+        className={cn(
+          'flex h-full flex-col items-center justify-center p-8 text-center',
+          className,
+        )}
+      >
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
           <FileTree className="h-8 w-8 text-muted-foreground" files={[]} />
         </div>

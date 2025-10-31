@@ -57,7 +57,8 @@ function FileTreeNode({
 }: FileTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(level < 2)
   const isSelected = selectedFile === node.path
-  const hasChildren = node.type === 'folder' && node.children && node.children.length > 0
+  const hasChildren =
+    node.type === 'folder' && node.children && node.children.length > 0
 
   const handleClick = () => {
     if (node.type === 'folder') {

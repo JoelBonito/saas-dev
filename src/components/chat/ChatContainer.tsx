@@ -18,12 +18,18 @@ export function ChatContainer({
   systemPrompt = 'Você é um assistente especializado em desenvolvimento de software. Ajude o usuário a criar e modificar código, sempre explicando suas decisões de forma clara e concisa.',
   className,
 }: ChatContainerProps) {
-  const { messages, isLoading, streamingContent, error, sendMessage, resetError } =
-    usePersistedChat({
-      projectId,
-      systemPrompt,
-      autoLoad: true,
-    })
+  const {
+    messages,
+    isLoading,
+    streamingContent,
+    error,
+    sendMessage,
+    resetError,
+  } = usePersistedChat({
+    projectId,
+    systemPrompt,
+    autoLoad: true,
+  })
 
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)

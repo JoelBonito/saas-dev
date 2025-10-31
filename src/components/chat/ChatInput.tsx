@@ -51,7 +51,12 @@ export function ChatInput({
   }
 
   return (
-    <div className={cn('flex items-end gap-2 border-t bg-background p-4', className)}>
+    <div
+      className={cn(
+        'flex items-end gap-2 border-t bg-background p-4',
+        className,
+      )}
+    >
       <Textarea
         ref={textareaRef}
         value={input}

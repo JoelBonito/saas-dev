@@ -164,9 +164,7 @@ export async function analyzeTask(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
-    throw new Error(
-      errorData.error || `HTTP error! status: ${response.status}`,
-    )
+    throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
   }
 
   return response.json()

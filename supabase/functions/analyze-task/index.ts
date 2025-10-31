@@ -64,7 +64,8 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .single()
 
-    const claudeApiKey = secret?.anthropic_api_key || Deno.env.get('CLAUDE_API_KEY')
+    const claudeApiKey =
+      secret?.anthropic_api_key || Deno.env.get('CLAUDE_API_KEY')
 
     if (!claudeApiKey) {
       throw new Error('Claude API key not configured')
@@ -135,7 +136,8 @@ Critérios para escolha da ferramenta:
       analysis = {
         task_type: 'general',
         optimal_tool: 'claude-chat',
-        recommendation: 'Recomendo começar com uma conversa no chat para entender melhor os requisitos.',
+        recommendation:
+          'Recomendo começar com uma conversa no chat para entender melhor os requisitos.',
         reasoning: content,
         estimated_tokens: 2000,
       }

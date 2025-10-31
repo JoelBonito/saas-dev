@@ -171,7 +171,8 @@ serve(async (req) => {
 
         // Send usage information at the end
         const totalTokens = inputTokens + outputTokens
-        const costUsd = (inputTokens / 1_000_000) * 3.0 + (outputTokens / 1_000_000) * 15.0
+        const costUsd =
+          (inputTokens / 1_000_000) * 3.0 + (outputTokens / 1_000_000) * 15.0
 
         await writer.write(
           encoder.encode(

@@ -28,7 +28,8 @@ export function TaskRecommendationBanner({
   onDismiss,
   className,
 }: TaskRecommendationBannerProps) {
-  const [recommendation, setRecommendation] = useState<TaskRecommendation | null>(null)
+  const [recommendation, setRecommendation] =
+    useState<TaskRecommendation | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
 
@@ -108,10 +109,12 @@ export function TaskRecommendationBanner({
 
         <div className="flex-1 space-y-2">
           <div className="flex items-center gap-2">
-            <h3 className={cn(
-              'font-bold',
-              isOptimal ? 'text-green-100' : 'text-blue-100'
-            )}>
+            <h3
+              className={cn(
+                'font-bold',
+                isOptimal ? 'text-green-100' : 'text-blue-100',
+              )}
+            >
               {isOptimal ? '✓ Tarefa Otimizada' : '💡 Recomendação'}
             </h3>
             <Badge variant="outline" className="text-xs">
@@ -124,10 +127,12 @@ export function TaskRecommendationBanner({
             )}
           </div>
 
-          <p className={cn(
-            'text-sm',
-            isOptimal ? 'text-green-200/90' : 'text-blue-200/90'
-          )}>
+          <p
+            className={cn(
+              'text-sm',
+              isOptimal ? 'text-green-200/90' : 'text-blue-200/90',
+            )}
+          >
             {recommendation.recommendation}
           </p>
 
@@ -187,7 +192,8 @@ export function TaskRecommendationBannerStatic() {
             ✓ Sistema de Recomendações Ativo
           </h3>
           <p className="text-sm text-green-200/80">
-            O assistente analisará suas tarefas e sugerirá a melhor ferramenta para cada caso.
+            O assistente analisará suas tarefas e sugerirá a melhor ferramenta
+            para cada caso.
           </p>
         </div>
       </div>

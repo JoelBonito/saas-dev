@@ -24,7 +24,9 @@ export async function createConversation(
 /**
  * Get a conversation by ID
  */
-export async function getConversation(id: string): Promise<Conversation | null> {
+export async function getConversation(
+  id: string,
+): Promise<Conversation | null> {
   const { data, error } = await supabase
     .from('conversations')
     .select('*')
