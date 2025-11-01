@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Search, Plus, Settings, User, LogOut, LayoutGrid } from 'lucide-react'
 import { GlassButton } from '@/components/common/GlassButton'
 import { GlassInput } from '@/components/common/GlassInput'
+import { Logo } from '@/components/common/Logo'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,14 +27,7 @@ export const Header = () => {
   return (
     <header className="fixed top-4 left-1/2 z-50 w-[95%] max-w-screen-xl -translate-x-1/2">
       <div className="flex items-center justify-between rounded-2xl border-glass bg-glass p-3 shadow-lg">
-        <Link to="/dashboard" className="flex items-center gap-2">
-          <img
-            src="https://img.usecurling.com/i?q=cube&color=gradient"
-            alt="INOVE.AI dev Logo"
-            className="h-8 w-8"
-          />
-          <span className="text-xl font-bold text-white">iNOVE.AI dev</span>
-        </Link>
+        <Logo size="md" showText={true} />
 
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />

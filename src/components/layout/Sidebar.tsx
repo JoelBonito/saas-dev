@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Logo } from '@/components/common/Logo'
 
 const navItems = [
   { to: '/dashboard', icon: LayoutGrid, label: 'Dashboard' },
@@ -21,6 +22,11 @@ export const Sidebar = () => {
   return (
     <aside className="fixed left-4 top-1/2 hidden h-[90vh] w-60 -translate-y-1/2 flex-col justify-between rounded-2xl border-glass bg-glass p-4 shadow-lg lg:flex">
       <div>
+        {/* Logo */}
+        <div className="mb-6 px-2">
+          <Logo size="md" showText={false} />
+        </div>
+
         <nav className="flex flex-col gap-2">
           {navItems.map((item) => (
             <NavLink
