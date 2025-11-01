@@ -1,4 +1,4 @@
-import { Textarea } from '@/components/ui/textarea'
+import Editor from '@monaco-editor/react'
 import { useThemeDetector } from '@/hooks/use-theme-detector'
 import { cn } from '@/lib/utils'
 
@@ -13,6 +13,7 @@ interface CodeEditorProps {
 
 export function CodeEditor({
   value,
+  language = 'typescript',
   onChange,
   readOnly = false,
   height = '100%',
@@ -22,25 +23,35 @@ export function CodeEditor({
 
   return (
     <div
-      className={cn('h-full w-full font-mono text-sm', className)}
+      className={cn('h-full w-full', className)}
       style={{ height }}
     >
-      <Textarea
+      <Editor
+        height="100%"
+        language={language}
         value={value}
-        onChange={(e) => onChange?.(e.target.value)}
-        readOnly={readOnly}
-        className={cn(
-          'h-full w-full resize-none rounded-none border-0 bg-transparent p-4 leading-relaxed focus-visible:ring-0',
-          theme === 'dark' ? 'text-gray-300' : 'text-gray-800',
-        )}
-        style={{
-          backgroundColor: theme === 'dark' ? 'hsl(240 10% 3.9%)' : '#ffffff',
-          fontFamily:
-            'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+        onChange={onChange}
+        theme={theme === 'dark' ? 'vs-dark' : 'light'}
+        options={{
+          readOnly,
+          minimap: { enabled: true },
+          fontSize: 14,
+          lineNumbers: 'on',
+          scrollBeyondLastLine: false,
+          automaticLayout: true,
+          tabSize: 2,
+          wordWrap: 'on',
+          padding: { top: 16, bottom: 16 },
+          smoothScrolling: true,
+          cursorBlinking: 'smooth',
+          cursorSmoothCaretAnimation: 'on',
+          fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
+          fontLigatures: true,
+          renderWhitespace: 'selection',
+          bracketPairColorization: {
+            enabled: true,
+          },
         }}
-        placeholder={
-          readOnly ? 'Nenhum conteúdo para exibir' : 'Digite seu código aqui...'
-        }
       />
     </div>
   )
