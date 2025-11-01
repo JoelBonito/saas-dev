@@ -81,6 +81,7 @@ export async function sendChatMessage(
       total_tokens: 0,
       cost_usd: 0,
     }
+    let returnedConversationId: string | undefined
 
     try {
       while (true) {
@@ -107,6 +108,8 @@ export async function sendChatMessage(
                 options?.onToken?.(token)
               } else if (parsed.type === 'usage') {
                 usage = parsed.usage
+              } else if (parsed.type === 'conversation') {
+                returnedConversationId = parsed.conversationId
               }
             } catch (e) {
               // Ignore JSON parse errors for incomplete chunks
@@ -118,9 +121,9 @@ export async function sendChatMessage(
       reader.releaseLock()
     }
 
-    options?.onComplete?.(fullText, usage)
+    options?.onComplete?.(fullText, usage, returnedConversationId)
 
-    return { text: fullText, usage }
+    return { text: fullText, usage, conversationId: returnedConversationId }
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error : new Error('Unknown error occurred')

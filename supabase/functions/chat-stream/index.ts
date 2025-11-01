@@ -70,6 +70,49 @@ serve(async (req) => {
       throw new Error('Messages are required')
     }
 
+    // Create or get conversation
+    let activeConversationId = conversationId
+
+    if (projectId && !conversationId) {
+      // Create a new conversation
+      const { data: newConversation, error: convError } = await supabaseClient
+        .from('conversations')
+        .insert({
+          project_id: projectId,
+          title: messages[0].content.substring(0, 100) // Use first message as title
+        })
+        .select()
+        .single()
+
+      if (convError) {
+        console.error('Error creating conversation:', convError)
+      } else {
+        activeConversationId = newConversation.id
+      }
+    }
+
+    // Save user message to database
+    let userMessageId: string | null = null
+    if (activeConversationId) {
+      const { data: savedMessage, error: msgError } = await supabaseClient
+        .from('messages')
+        .insert({
+          conversation_id: activeConversationId,
+          role: 'user',
+          content: messages[messages.length - 1].content,
+          tokens_used: 0,
+          model_used: model,
+        })
+        .select()
+        .single()
+
+      if (msgError) {
+        console.error('Error saving user message:', msgError)
+      } else {
+        userMessageId = savedMessage.id
+      }
+    }
+
     // Fetch Claude API key from Supabase secrets
     const { data: secret, error: secretError } = await supabaseClient
       .from('user_settings')
@@ -82,7 +125,7 @@ serve(async (req) => {
     // Fallback to global API key if user doesn't have one
     if (!claudeApiKey) {
       // Get from Supabase vault/secrets (stored as 'api_key_claude')
-      claudeApiKey = Deno.env.get('CLAUDE_API_KEY')
+      claudeApiKey = Deno.env.get('api_key_claude') || Deno.env.get('CLAUDE_API_KEY')
     }
 
     if (!claudeApiKey) {
@@ -125,6 +168,7 @@ serve(async (req) => {
         let buffer = ''
         let inputTokens = 0
         let outputTokens = 0
+        let fullText = ''
 
         while (true) {
           const { done, value } = await reader.read()
@@ -150,10 +194,12 @@ serve(async (req) => {
                 // Handle different event types
                 if (parsed.type === 'content_block_delta') {
                   if (parsed.delta?.type === 'text_delta') {
+                    const textChunk = parsed.delta.text
+                    fullText += textChunk
                     // Send text chunks to client
                     await writer.write(
                       encoder.encode(
-                        `data: ${JSON.stringify({ type: 'token', content: parsed.delta.text })}\n\n`,
+                        `data: ${JSON.stringify({ type: 'token', content: textChunk })}\n\n`,
                       ),
                     )
                   }
@@ -188,10 +234,59 @@ serve(async (req) => {
           ),
         )
 
-        // Save to database if conversationId and projectId are provided
-        if (conversationId && projectId) {
-          // This would be handled by the client after receiving the complete message
-          // Or we could save it here, but it's better to let the client handle it
+        // Save assistant message and API usage to database
+        if (activeConversationId && fullText) {
+          // Save assistant message
+          const { data: assistantMessage, error: assistantError } = await supabaseClient
+            .from('messages')
+            .insert({
+              conversation_id: activeConversationId,
+              role: 'assistant',
+              content: fullText,
+              tokens_used: totalTokens,
+              model_used: model,
+              metadata: {
+                input_tokens: inputTokens,
+                output_tokens: outputTokens,
+                cost_usd: costUsd,
+              },
+            })
+            .select()
+            .single()
+
+          if (assistantError) {
+            console.error('Error saving assistant message:', assistantError)
+          }
+
+          // Save API usage tracking
+          if (projectId) {
+            const { error: usageError } = await supabaseClient
+              .from('api_usage')
+              .insert({
+                user_id: user.id,
+                project_id: projectId,
+                message_id: assistantMessage?.id,
+                tokens_input: inputTokens,
+                tokens_output: outputTokens,
+                tokens_total: totalTokens,
+                cost_usd: costUsd,
+                model_used: model,
+              })
+
+            if (usageError) {
+              console.error('Error saving API usage:', usageError)
+            }
+          }
+
+          // Send the conversation ID to the client
+          await writer.write(
+            encoder.encode(
+              `data: ${JSON.stringify({
+                type: 'conversation',
+                conversationId: activeConversationId,
+              })}\n\n`,
+            ),
+          )
         }
 
         await writer.write(encoder.encode('data: [DONE]\n\n'))

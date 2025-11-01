@@ -11,7 +11,7 @@ export interface ChatMessage {
 export interface StreamingOptions {
   onStart?: () => void
   onToken?: (token: string) => void
-  onComplete?: (fullText: string, usage: TokenUsage) => void
+  onComplete?: (fullText: string, usage: TokenUsage, conversationId?: string) => void
   onError?: (error: Error) => void
 }
 

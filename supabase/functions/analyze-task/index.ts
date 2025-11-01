@@ -65,7 +65,7 @@ serve(async (req) => {
       .single()
 
     const claudeApiKey =
-      secret?.anthropic_api_key || Deno.env.get('CLAUDE_API_KEY')
+      secret?.anthropic_api_key || Deno.env.get('api_key_claude') || Deno.env.get('CLAUDE_API_KEY')
 
     if (!claudeApiKey) {
       throw new Error('Claude API key not configured')
